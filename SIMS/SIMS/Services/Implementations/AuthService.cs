@@ -1,4 +1,4 @@
-﻿using SIMS.Models.Entities;
+using SIMS.Models.Entities;
 using SIMS.Repositories.Interfaces;
 using SIMS.Services.Interfaces;
 
@@ -8,11 +8,13 @@ namespace SIMS.Services.Implementations
     {
         private readonly IRepository<User> _userRepository;
         private readonly IFacultyRepository _facultyRepository;
+        private readonly IStudentRepository _studentRepository;
 
-        public AuthService(IRepository<User> userRepository, IFacultyRepository facultyRepository)
+        public AuthService(IRepository<User> userRepository, IFacultyRepository facultyRepository, IStudentRepository studentRepository)
         {
             _userRepository = userRepository;
             _facultyRepository = facultyRepository;
+            _studentRepository = studentRepository;
         }
 
 
@@ -35,6 +37,15 @@ namespace SIMS.Services.Implementations
                 if (!isAssigned)
                 {
                     throw new Exception("Your faculty account has not been assigned to a department yet. Please contact the administrator.");
+                }
+            }
+            if (user.Role == "Student")
+            {
+                var students = await _studentRepository.GetAllWithDetailsAsync();
+                bool isAssigned = students.Any(s => s.UserId == user.UserId);
+                if (!isAssigned)
+                {
+                    throw new Exception("Your student account has not been assigned to a program yet. Please contact the administrator.");
                 }
             }
 
