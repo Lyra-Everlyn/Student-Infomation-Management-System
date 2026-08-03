@@ -1,0 +1,104 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolyn Admission SIMS</title>
+    <link rel="icon" type="image/x-icon" href="~/img/logo.png">
+    <link rel="stylesheet" href="~/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="background-container">
+        <img src="~/img/login-background.png" alt="Background">
+    </div>
+
+    <div class="container">
+        <div class="auth-box">
+
+            <div class="form-side">
+                <section class="auth-section active">
+                    <div class="header">
+                        <div class="brand-wrapper">
+                            <img src="~/img/logo.png" alt="Logo" class="brand-img">
+                            <h1>Admission</h1>
+                        </div>
+                        <p>Create an Admission Account</p>
+                    </div>
+
+                    <form method="post" asp-controller="SendAdmission" asp-action="Register" id="registerForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="fullname" placeholder="Fullname" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" placeholder="Email" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" name="phoneNumber" placeholder="Phone Number" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="register-pass" name="password" placeholder="Password" required>
+                            <i class="far fa-eye toggle-password" onclick="togglePass('pass-login', this)" style="cursor: pointer;"></i>
+                        </div>
+
+                        <div class="note-text">
+                            * Create an account first, then log in to complete your detailed application profile.
+                        </div>
+
+                        <button type="submit" class="btn-main">Create Account</button>
+                    </form>
+
+                    <p class="footer-text">
+                        Already have an account?
+                        <a href="/">Login here</a>
+                    </p>
+                </section>
+            </div>
+
+            <div class="image-side">
+                <img src="~/img/side-register.png" id="side-image" class="side-img-decor">
+            </div>
+        </div>
+    </div>
+
+    <!-- Show error from Server by showError() -->
+    @if (!ViewData.ModelState.IsValid) {
+        var errorMessage = ViewData.ModelState.Values
+                            .SelectMany(v => v.Errors)
+                            .Select(e => e.ErrorMessage)
+                            .FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(errorMessage)) {
+            <script src="~/js/handle-input-error.js"></script>
+            <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const errorMsg = '@Html.Raw(errorMessage.Replace("'", "\\'"))';
+                        const emailField = document.getElementById('email-input');
+                        showError(emailField, errorMsg);
+                    });
+            </script>
+        }
+    }
+    <script src="~/js/handle-input-error.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/notify.js"></script>
+    <script>
+            window.SystemAlerts = {
+                success: @Html.Raw(Json.Serialize(TempData["SuccessMessage"]?.ToString())),
+                error: @Html.Raw(Json.Serialize(TempData["ErrorMessage"]?.ToString()))
+            };
+    </script>
+</body>
+</html>

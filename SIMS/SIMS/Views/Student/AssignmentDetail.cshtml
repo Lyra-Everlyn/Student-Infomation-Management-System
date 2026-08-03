@@ -1,0 +1,172 @@
+﻿@model SIMS.Models.Entities.Assignment
+@{
+    Layout = null;
+    ViewData["Title"] = "Assignment Detail";
+    var submission = ViewBag.Submission as SIMS.Models.Entities.Grade;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="~/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/assignment-detail.css" />
+</head>
+<body>
+    <main class="moodle-main-container">
+
+        <div class="moodle-header">
+            <h1><i class="fa-solid fa-file-lines text-primary"></i> @Model.AssignmentName</h1>
+            <a href="javascript:history.back()" class="btn-moodle-back">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <h3 class="moodle-section-title">Assignment Instructions</h3>
+        <p class="moodle-instructions">@(Model.Description ?? "No instructions provided by the instructor.")</p>
+
+        <h3 class="moodle-section-title">Submission status</h3>
+        <table class="moodle-table">
+            <tbody>
+                <tr>
+                    <td class="col-label">Submission status</td>
+                    <td class="col-value @(submission != null ? "bg-submitted" : "bg-pending")">
+                        @(submission != null ? "Submitted for grading" : "No attempt")
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-label">Grading status</td>
+                    <td class="col-value @(submission?.Score != null ? "bg-graded" : "")">
+                        @(submission?.Score != null ? "Graded" : "Not graded")
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-label">Due date</td>
+                    <td class="col-value">
+                        @(Model.EndTime?.ToString("dddd, d MMMM yyyy, h:mm tt") ?? "No deadline")
+                    </td>
+                </tr>
+                <tr>
+                    <td class="col-label">Time remaining</td>
+                    <td class="col-value">
+                        @{
+                            if (Model.EndTime.HasValue)
+                            {
+                                if (submission != null && submission.SubmitDate.HasValue)
+                                {
+                                    var diff = Model.EndTime.Value - submission.SubmitDate.Value;
+                                    if (diff.TotalSeconds > 0)
+                                    {
+                                        <span>Assignment was submitted @diff.Days days @diff.Hours hours early</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger-custom">Assignment was submitted late</span>
+                                    }
+                                }
+                                else
+                                {
+                                    var diff = Model.EndTime.Value - DateTime.Now;
+                                    if (diff.TotalSeconds > 0)
+                                    {
+                                        <span>@diff.Days days @diff.Hours hours</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger-custom">Assignment is overdue</span>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <span>-</span>
+                            }
+                        }
+                    </td>
+                </tr>
+                @if (submission != null && submission.SubmitDate.HasValue)
+                {
+                    <tr>
+                        <td class="col-label">Last modified</td>
+                        <td class="col-value">@submission.SubmitDate.Value.ToString("dddd, d MMMM yyyy, h:mm tt")</td>
+                    </tr>
+                    <tr>
+                        <td class="col-label">File submissions</td>
+                        <td class="col-value">
+                            @{
+                                var decodedUrl = Uri.UnescapeDataString(submission.FileUrl ?? "");
+                                var fileName = decodedUrl.Substring(decodedUrl.LastIndexOf('/') + 1);
+                            }
+                            <a href="@submission.FileUrl" target="_blank" class="file-link">
+                                <i class="fa-solid fa-file-pdf text-danger"></i> @fileName
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Score Table -->
+        @if (submission?.Score != null)
+        {
+            <h3 class="moodle-section-title">Feedback</h3>
+            <table class="moodle-table">
+                <tbody>
+                    <tr>
+                        <td class="col-label">Grade</td>
+                        <td class="col-value"><strong>@submission.Score / 100</strong></td>
+                    </tr>
+                    <tr>
+                        <td class="col-label">Feedback comments</td>
+                        <td class="col-value">@(submission.Feedback ?? "No feedback provided.")</td>
+                    </tr>
+                </tbody>
+            </table>
+        }
+
+        <!-- Submit Form -->
+        @if (!Model.EndTime.HasValue || Model.EndTime.Value > DateTime.Now || submission == null)
+        {
+            <div class="submission-actions">
+                <button type="button" id="btn-toggle-upload" class="btn-moodle-action">
+                    @(submission != null ? "Edit submission" : "Add submission")
+                </button>
+            </div>
+
+            <div id="upload-section" class="upload-section" style="display: none;">
+                <form asp-controller="StudentAssignment" asp-action="SubmitAssignment" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="assignmentId" value="@Model.AssignmentId" />
+
+                    <div class="upload-group">
+                        <label>File submissions</label>
+                        <input type="file" name="fileUpload" class="upload-input" required />
+                        <span class="upload-help">Maximum file size: 10MB.</span>
+                    </div>
+
+                    <div class="upload-actions">
+                        <button type="submit" class="btn-moodle-action">Save changes</button>
+                        <button type="button" id="btn-cancel-upload" class="btn-moodle-cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        }
+
+    </main>
+
+    <script src="~/js/assignment-detail.js"></script>
+    <script src="~/js/grade-modal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/notify.js"></script>
+    <script>
+            window.SystemAlerts = {
+                success: @Html.Raw(Json.Serialize(TempData["Success"]?.ToString())),
+                error: @Html.Raw(Json.Serialize(TempData["Error"]?.ToString()))
+            };
+    </script>
+</body>
+</html>

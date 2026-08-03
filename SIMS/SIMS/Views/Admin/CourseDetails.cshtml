@@ -1,0 +1,259 @@
+﻿@model SIMS.Models.ViewModels.ManageCourseViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="~/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+    <link rel="stylesheet" href="~/css/manage-assignment.css" />
+    <link rel="stylesheet" href="~/css/course-details.css" />
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="/Admin/Dashboard" class="logo">
+            <img src="~/img/logo.png" alt="Logo">
+            <span>Evolyne</span>
+        </a>
+        <a href="/Admin/AdminDashboard" class="nav-link active">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </aside>
+
+    <main class="main">
+        <div class="tab-header">
+            <div class="header-title-group">
+                <h1 class="course-title">
+                    <i class="fa-solid fa-laptop text-primary course-title-icon"></i>
+                    @Model.Course.CourseName
+                </h1>
+                <div class="join-code-container">
+                    <span class="faculty-info">
+                        <i class="fa-solid fa-chalkboard-user"></i> Faculty:
+                        <strong>@(Model.Course.Faculty?.User?.FullName ?? "Unassigned")</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Assignment List -->
+            <div class="profile-section-card">
+                <h3 class="profile-section-title">
+                    <i class="fa-solid fa-file-signature"></i> Assignments
+                </h3>
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Assignment Name</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Submissions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Assignments.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="empty-row" style="text-align: center; padding: 25px; color: gray;">No assignments created yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var assign in Model.Assignments)
+                                {
+                                    var submissionCount = Model.Grades.Count(g => g.AssignmentId == assign.AssignmentId);
+                                    <tr>
+                                        <td><strong>@assign.AssignmentName</strong></td>
+                                        <td>@(assign.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>@(assign.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>
+                                            <span class="status-badge @(submissionCount > 0 ? "status-approved" : "status-pending")">
+                                                @submissionCount / @Model.Enrollments.Count()
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Student List -->
+            <div class="profile-section-card">
+                <h3 class="profile-section-title">
+                    <i class="fa-solid fa-users"></i> Enrolled Students (@Model.Enrollments.Count())
+                </h3>
+                <button class="btn-create btn-add-student" onclick="openAddStudentModal()">
+                    <i class="fa-solid fa-user-plus"></i> Add Student
+                </button>
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Join Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Enrollments.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="empty-row">No students have joined this class yet.</td>
+                                </tr>
+                            }
+                            @foreach (var enroll in Model.Enrollments)
+                            {
+                                <tr>
+                                    <td><strong>@(enroll.Student?.StudentCode ?? "N/A")</strong></td>
+                                    <td>@(enroll.Student?.User?.FullName ?? "N/A")</td>
+                                    <td>@(enroll.Student?.User?.Email ?? "N/A")</td>
+                                    <td>@enroll.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <form id="form-remove-student-@enroll.StudentId" class="hidden-form" asp-controller="Course" asp-action="RemoveStudentFromCourse" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="CourseId" class="remove_course_id" />
+                                            <input type="hidden" name="StudentId" class="remove_student_id" />
+                                        </form>
+                                        <button type="button" class="btn-remove"
+                                                onclick="confirmRemoveStudent(@Model.Course.CourseId, @enroll.StudentId, '@(enroll.Student?.User?.FullName)', 'form-remove-student-@enroll.StudentId')">
+                                            <i class="fa-solid fa-trash"></i> Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Grade -->
+            <div class="profile-section-card grade-section">
+                <h3 class="profile-section-title">
+                    <i class="fa-solid fa-clipboard-check"></i> Student Submissions Overview
+                </h3>
+
+                <div class="filter-container grade-filter">
+                    <div class="form-group">
+                        <label>Filter Assignment:</label>
+                        <select id="assignment-filter" class="form-control" onchange="filterAssignments(this.value)">
+                            <option value="all">-- All Assignments --</option>
+                            @foreach (var assign in Model.Assignments)
+                            {
+                                <option value="@assign.AssignmentId">@assign.AssignmentName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Full Name</th>
+                                <th>Assignment</th>
+                                <th>Submitted Date</th>
+                                <th>File</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Grades.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="empty-row">No submissions from students yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var grade in Model.Grades)
+                                {
+                                    var assignment = Model.Assignments.FirstOrDefault(a => a.AssignmentId == grade.AssignmentId);
+                                    var studentEnroll = Model.Enrollments.FirstOrDefault(e => e.StudentId == grade.StudentId);
+
+                                    <tr class="submission-row" data-assignment-id="@grade.AssignmentId">
+                                        <td><strong>@(studentEnroll?.Student?.StudentCode ?? "N/A")</strong></td>
+                                        <td>@(studentEnroll?.Student?.User?.FullName ?? "N/A")</td>
+                                        <td>@(assignment?.AssignmentName ?? "N/A")</td>
+                                        <td>@(grade.SubmitDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(grade.FileUrl))
+                                            {
+                                                <a href="@grade.FileUrl" target="_blank" class="view-file-link">
+                                                    <i class="fa-solid fa-download"></i> View File
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>No file</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (grade.Score != null)
+                                            {
+                                                <div class="score-wrapper">
+                                                    <span class="status-badge badge-success">
+                                                        @grade.Score / 100
+                                                    </span>
+                                                </div>
+                                                @* @if (!string.IsNullOrEmpty(grade.Feedback))
+                                                {
+                                                    <small class="feedback-text">"@grade.Feedback"</small>
+                                                } *@
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge badge-warning">Not Graded</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Add Student -->
+    <div id="modal-add-student" class="modal">
+        <div class="modal-content modal-content-sm">
+            <span class="close-btn" onclick="document.getElementById('modal-add-student').style.display='none'">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Add Student to Course</h2>
+            <form asp-controller="Course" asp-action="AddStudentToCourse" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CourseId" value="@Model.Course.CourseId" />
+
+                <div class="form-group">
+                    <label>Enter Student Code</label>
+                    <input type="text" name="StudentCode" placeholder="e.g. BH20269985" required />
+                    <small class="help-text">
+                        * The system will automatically find and enroll the student.
+                    </small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Enroll Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/js/course-details.js"></script>
+</body>
+</html>
