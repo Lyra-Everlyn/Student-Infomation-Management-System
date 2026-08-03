@@ -1,0 +1,1108 @@
+﻿@model SIMS.Models.ViewModels.AdminDashboardViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMS Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="~/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="~/css/dashboard.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <a class="logo">
+            <img src="~/img/logo.png">
+            <span>Evolyne</span>
+        </a>
+        <a class="nav-link active" data-tab="tab-home">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+        <a class="nav-link" data-tab="tab-admissions">
+            <i class="fa-solid fa-user-plus"></i> Admissions
+        </a>
+        <a class="nav-link" data-tab="tab-departments">
+            <i class="fa-solid fa-building-columns"></i> Departments
+        </a>
+        <a class="nav-link" data-tab="tab-classes">
+            <i class="fa-solid fa-school"></i> Classes
+        </a>
+        <a class="nav-link" data-tab="tab-subjects">
+            <i class="fa-solid fa-book-open"></i> Subjects
+        </a>
+        <a class="nav-link" data-tab="tab-users">
+            <i class="fa-solid fa-users"></i> Users
+        </a>
+        <a class="nav-link" data-tab="tab-students">
+            <i class="fa-solid fa-user-graduate"></i> Students
+        </a>
+        <a class="nav-link" data-tab="tab-faculties">
+            <i class="fa-solid fa-chalkboard-user"></i> Faculties
+        </a>
+        <a class="nav-link" data-tab="tab-courses">
+            <i class="fa-solid fa-layer-group"></i> Courses
+        </a>
+        <div class="log-out">
+            <partial name="_LogoutFormPartial" />
+            <a class="nav-link" onclick="handleLogout(event)">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </aside>
+    
+    <main class="main">
+        <div id="tab-home" class="tab-content active">
+            <div class="home-container">
+                <h1 class="home-title">
+                    Welcome back, @(User.Identity?.Name ?? "Admin")! 👋
+                </h1>
+                <img src="~/img/tab-home.png" alt="Welcome Illustration" class="home-image" />
+            </div>
+        </div>
+
+        <div id="tab-admissions" class="tab-content">
+            <div class="tab-header">
+                <h1>Admission Applications Management</h1>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Application Id</th>
+                            <th>Fullname</th>
+                            <th>Email</th>
+                            <th>Phone number</th>
+                            <th>Date of birth</th>
+                            <th>Department</th>
+                            <th>Apply time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Admissions)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-admission"
+                                data-id="@item.ApplicationId"
+                                data-userid="@item.UserId"
+                                data-fullname="@item.User?.FullName"
+                                data-email="@item.User?.Email"
+                                data-phone="@item.User?.PhoneNumber"
+                                data-dob="@item.User?.DateOfBirth?.ToString("yyyy-MM-dd")"
+                                data-departmentid="@item.DepartmentId"
+                                data-status="@item.Status">
+
+                                <td>#@item.ApplicationId</td>
+                                <td>@item.User?.FullName</td>
+                                <td>@item.User?.Email</td>
+                                <td>@item.User?.PhoneNumber</td>
+                                <td>@item.User?.DateOfBirth?.ToString("dd/MM/yyyy")</td>
+                                <td>@item.Department?.DepartmentName</td>
+                                <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <span class="status-badge status-@item.Status.ToLower()">
+                                        @item.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-departments" class="tab-content">
+            <div class="tab-header">
+                <h1>Department Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-department">
+                    <i class="fa-solid fa-plus"></i> Create New
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Department Id</th>
+                            <th>Department Code</th>
+                            <th>Department Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-department"
+                                data-id="@dept.DepartmentId"
+                                data-code="@dept.DepartmentCode"
+                                data-name="@dept.DepartmentName">
+
+                                <td>#@dept.DepartmentId</td>
+                                <td>@dept.DepartmentCode</td>
+                                <td>@dept.DepartmentName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-classes" class="tab-content">
+            <div class="tab-header">
+                <h1>Class Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-class">
+                    <i class="fa-solid fa-plus"></i> Create New
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Class Id</th>
+                            <th>Class Name</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var cls in Model.Classes)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-class"
+                                data-id="@cls.ClassId"
+                                data-name="@cls.ClassName"
+                                data-departmentid="@cls.DepartmentId">
+
+                                <td>#@cls.ClassId</td>
+                                <td>@cls.ClassName</td>
+                                <td>@cls.Department?.DepartmentName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-subjects" class="tab-content">
+            <div class="tab-header">
+                <h1>Subject Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-subject">
+                    <i class="fa-solid fa-plus"></i> Create New
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Subject Id</th>
+                            <th>Subject Name</th>
+                            <th>Subject Code</th>
+                            <th>Credits</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sub in Model.Subjects)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-subject"
+                                data-id="@sub.SubjectId"
+                                data-name="@sub.SubjectName"
+                                data-code="@sub.SubjectCode"
+                                data-credits="@sub.Credits"
+                                data-departmentid="@sub.DepartmentId">
+
+                                <td>#@sub.SubjectId</td>
+                                <td>@sub.SubjectName</td>
+                                <td>@sub.SubjectCode</td>
+                                <td>@sub.Credits</td>
+                                <td>@sub.Department?.DepartmentName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-users" class="tab-content">
+            <div class="tab-header">
+                <h1>User Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-user">
+                    <i class="fa-solid fa-plus"></i> Create New
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User Id</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Create time</th>
+                            <th>Update time</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-user"
+                                data-id="@user.UserId"
+                                data-fullname="@user.FullName"
+                                data-email="@user.Email"
+                                data-phone="@user.PhoneNumber"
+                                data-address="@user.Address"
+                                data-dob="@user.DateOfBirth?.ToString("yyyy-MM-dd")"
+                                data-role="@user.Role"
+                                data-status="@user.Status"
+                                data-createdat="@user.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")"
+                                data-updatedat="@user.UpdatedAt?.ToString("dd/MM/yyyy HH:mm:ss")">
+
+                                <td>#@user.UserId</td>
+                                <td>@user.FullName</td>
+                                <td>@user.Email</td>
+                                <td>@user.PhoneNumber</td>
+                                <td>@user.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>@user.UpdatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td><strong>@user.Role</strong></td>
+                                <td>
+                                    <span class="status-badge status-@user.Status.ToLower()">
+                                        @user.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-students" class="tab-content">
+            <div class="tab-header">
+                <h1>Student Management</h1>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Id</th>
+                            <th>Student Code</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Class</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in Model.Students)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-student"
+                                data-id="@student.StudentId"
+                                data-code="@student.StudentCode"
+                                data-userid="@student.UserId"
+                                data-name="@student.User?.FullName"
+                                data-email="@student.User?.Email"
+                                data-departmentid="@student.DepartmentId"
+                                data-classid="@student.ClassId">
+
+                                <td>#@student.StudentId</td>
+                                <td><strong>@student.StudentCode</strong></td>
+                                <td>@student.User?.FullName</td>
+                                <td>@student.User?.Email</td>
+                                <td>
+                                    <span class="status-badge status-approved">@student.Class?.ClassName</span>
+                                </td>
+                                <td>@student.Department?.DepartmentName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-faculties" class="tab-content">
+            <div class="tab-header">
+                <h1>Faculty Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-faculty">
+                    <i class="fa-solid fa-plus"></i> Assign New Faculty
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Faculty Id</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var faculty in Model.Faculties)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-faculty"
+                                data-id="@faculty.FacultyId"
+                                data-userid="@faculty.UserId"
+                                data-departmentid="@faculty.DepartmentId"
+                                data-fullname="@faculty.User?.FullName"
+                                data-email="@faculty.User?.Email">
+
+                                <td>#@faculty.FacultyId</td>
+                                <td>@faculty.User?.FullName</td>
+                                <td>@faculty.User?.Email</td>
+                                <td>
+                                    <span class="status-badge status-pending">@faculty.Department?.DepartmentName</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-courses" class="tab-content">
+            <div class="tab-header">
+                <h1>Course Management</h1>
+                <button class="btn-create" data-modal-target="#modal-create-course">
+                    <i class="fa-solid fa-plus"></i> Create Course
+                </button>
+            </div>
+            <div class="data-table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Course Id</th>
+                            <th>Course Code</th>
+                            <th>Course Name</th>
+                            <th>Subject</th>
+                            <th>Assigned Faculty</th>
+                            <th>Created Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var crs in Model.Courses)
+                        {
+                            <tr class="clickable-row"
+                                data-target="modal-edit-course"
+                                data-id="@crs.CourseId"
+                                data-name="@crs.CourseName"
+                                data-subjectid="@crs.SubjectId"
+                                data-facultyid="@crs.FacultyId">
+
+                                <td>#@crs.CourseId</td>
+                                <td><span class="status-badge status-approved">@crs.CourseCode</span></td>
+                                <td><strong>@crs.CourseName</strong></td>
+                                <td>
+                                    @crs.Subject?.SubjectName
+                                    <small style="color: var(--text-light); display: block;">(@crs.Subject?.SubjectCode)</small>
+                                </td>
+                                <td>
+                                    @if (crs.Faculty != null)
+                                    {
+                                        <span>@crs.Faculty.User?.FullName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-pending">Unassigned</span>
+                                    }
+                                </td>
+                                <td>@crs.CreatedAt.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Edit Admission Application Form-->
+    <div id="modal-edit-admission" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Edit Admission Application</h2>
+            <form asp-controller="Admission" asp-action="UpdateAdmission" method="post">
+                <input type="hidden" name="ApplicationId" id="application_id" />
+                <input type="hidden" name="UserId" id="application_userid" />
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="FullName" id="application_fullname" required />
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" id="application_email" readonly style="background: #e9ecef; cursor: not-allowed;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="PhoneNumber" id="application_phone" />
+                    </div>
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="DateOfBirth" id="application_dob" />
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="DepartmentId" id="application_department" required>
+                            @foreach (var dept in Model.Departments)
+                            {
+                                <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="Status" id="application_status">
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Incomplete">Incomplete</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-admission-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <!-- Form ẩn để gọi Delete an toàn -->
+            <form id="form-delete-admission" asp-controller="Admission" asp-action="DeleteAdmission" method="post" style="display:none;">
+                <input type="hidden" name="id" id="delete_application_id" />
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE DEPARTMENT FORM -->
+    <div id="modal-create-department" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Create New Department</h2>
+            <form asp-controller="Department" asp-action="CreateDepartment" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Department Code</label>
+                    <input type="text" name="DepartmentCode" placeholder="e.g. IT, BIZ" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <input type="text" name="DepartmentName" placeholder="e.g. Information Technology" required />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT DEPARTMENT FORM -->
+    <div id="modal-edit-department" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Edit Department</h2>
+            <form asp-controller="Department" asp-action="UpdateDepartment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="DepartmentId" id="department_id" value="0" />
+
+                <div class="form-group">
+                    <label>Department Code</label>
+                    <input type="text" name="DepartmentCode" id="department_code" placeholder="e.g. IT, BIZ" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <input type="text" name="DepartmentName" id="department_name" placeholder="e.g. Information Technology" required />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-department-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <form id="form-delete-department" asp-controller="Department" asp-action="DeleteDepartment" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="delete_department_id" />
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE CLASS FORM -->
+    <div id="modal-create-class" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Create Class</h2>
+            <form asp-controller="Class" asp-action="CreateClass" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Class Name</label>
+                    <input type="text" name="ClassName" placeholder="Enter class name" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" required>
+                        <option value="" disabled selected>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT CLASS FORM -->
+    <div id="modal-edit-class" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Edit Class</h2>
+            <form asp-controller="Class" asp-action="UpdateClass" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ClassId" id="class_id" />
+
+                <div class="form-group">
+                    <label>Class Name</label>
+                    <input type="text" name="ClassName" id="class_name" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" id="class_department" required>
+                        <option value="" disabled selected>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-class-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <form id="form-delete-class" asp-controller="Class" asp-action="DeleteClass" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="delete_class_id" />
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE SUBJECT FORM -->
+    <div id="modal-create-subject" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Create Subject</h2>
+            <form asp-controller="Subject" asp-action="CreateSubject" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" name="SubjectName" placeholder="Enter subject name" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Code</label>
+                    <input type="text" name="SubjectCode" placeholder="Enter subject code" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Credits</label>
+                    <input type="number" name="Credits" placeholder="Enter credits" required min="1" max="10" />
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" required>
+                        <option value="" disabled selected>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT SUBJECT FORM -->
+    <div id="modal-edit-subject" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Edit Subject</h2>
+            <form asp-controller="Subject" asp-action="UpdateSubject" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="SubjectId" id="subject_id" />
+
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input type="text" name="SubjectName" id="subject_name" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Code</label>
+                    <input type="text" name="SubjectCode" id="subject_code" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Credits</label>
+                    <input type="number" name="Credits" id="subject_credits" required min="1" max="10" />
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" id="subject_department" required>
+                        <option value="" disabled selected>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-subject-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <form id="form-delete-subject" asp-controller="Subject" asp-action="DeleteSubject" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="delete_subject_id" />
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE USER FORM -->
+    <div id="modal-create-user" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Create New User</h2>
+            <form asp-controller="User" asp-action="CreateUser" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="FullName" placeholder="Enter full name" required />
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" placeholder="e.g. user@btec.edu.vn" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Temporary Password</label>
+                        <input type="password" name="RawPassword" placeholder="Enter password" required />
+                    </div>
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="PhoneNumber" placeholder="Enter phone" />
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="DateOfBirth" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="Address" placeholder="Enter full address" />
+                </div>
+
+                <div class="form-group">
+                    <label>System Role</label>
+                    <select name="Role" required>
+                        <option value="" disabled selected>-- Select Role --</option>
+                        <option value="Admin">Administrator</option>
+                        <option value="Faculty">Faculty</option>
+                        <option value="Student">Student</option>
+                        <option value="Applicant">Applicant</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT USER FORM -->
+    <div id="modal-edit-user" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Edit User Profile</h2>
+            <form asp-controller="User" asp-action="UpdateUser" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="UserId" id="user_id" />
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="FullName" id="user_fullname" required />
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" id="user_email" required />
+                    </div>
+                    <div class="form-group">
+                        <label>System Role</label>
+                        <select name="Role" id="user_role" required>
+                            <option value="Admin">Administrator</option>
+                            <option value="Faculty">Faculty</option>
+                            <option value="Student">Student</option>
+                            <option value="Applicant">Applicant</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" name="PhoneNumber" id="user_phone" />
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="DateOfBirth" id="user_dob" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" name="Address" id="user_address" />
+                </div>
+
+                <div class="form-group">
+                    <label>Account Status</label>
+                    <select name="Status" id="user_status" required>
+                        <option value="Active">Active</option>
+                        <option value="Locked">Locked (Suspended)</option>
+                        <option value="Inactive">Inactive (Deactivated)</option>
+                    </select>
+                </div>
+
+                <hr class="cut-line">
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Created At (Read-only)</label>
+                        <input type="text" id="user_created_at" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed; font-size: 0.9rem;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Updated At (Read-only)</label>
+                        <input type="text" id="user_updated_at" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed; font-size: 0.9rem;" />
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-user-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <form id="form-delete-user" asp-controller="User" asp-action="DeleteUser" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="delete_user_id" />
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT STUDENT FORM -->
+    <div id="modal-edit-student" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Edit Student Record</h2>
+            <form asp-controller="StudentManager" asp-action="UpdateStudent" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="StudentId" id="student_id" />
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Full Name (Read-only)</label>
+                        <input type="text" id="student_fullname" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Read-only)</label>
+                        <input type="email" id="student_email" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed;" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Student Code</label>
+                    <input type="text" name="StudentCode" id="student_code" required />
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select name="DepartmentId" id="student_department" required>
+                            <option value="" disabled>-- Select Department --</option>
+                            @foreach (var dept in Model.Departments)
+                            {
+                                <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Class</label>
+                        <select name="ClassId" id="student_class" required>
+                            <option value="" disabled>-- Select Class --</option>
+                            @foreach (var cls in Model.Classes)
+                            {
+                                <option value="@cls.ClassId">@cls.ClassName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE FACULTY FORM -->
+    <div id="modal-create-faculty" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Assign New Faculty</h2>
+            <form asp-controller="FacultyManager" asp-action="CreateFaculty" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label>Select User Account</label>
+                    <select name="UserId" required>
+                        <option value="" disabled selected>-- Select an eligible user --</option>
+                        @{
+                            var eligibleUsers = Model.Users.Where(u =>
+                                u.Role == "Faculty" &&
+                                !Model.Faculties.Any(f => f.UserId == u.UserId)
+                            );
+                        }
+                        @foreach (var user in eligibleUsers)
+                        {
+                            <option value="@user.UserId">@user.FullName (@user.Email)</option>
+                        }
+                    </select>
+                    <small class="form-help-text" style="color: #ccc; font-size: 0.8rem; display: block; margin-top: 5px;">
+                        * Only users with 'Faculty' role who haven't been assigned will appear here.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" required>
+                        <option value="" disabled selected>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Assign Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT FACULTY FORM -->
+    <div id="modal-edit-faculty" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn">
+                <i class="fas fa-times"></i>
+            </span>
+            <h2>Edit Faculty Record</h2>
+            <form asp-controller="FacultyManager" asp-action="UpdateFaculty" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="FacultyId" id="faculty_id" />
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Full Name (Read-only)</label>
+                        <input type="text" id="faculty_fullname" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Read-only)</label>
+                        <input type="email" id="faculty_email" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed;" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select name="DepartmentId" id="faculty_department" required>
+                        <option value="" disabled>-- Select Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CREATE COURSE FORM -->
+    <div id="modal-create-course" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Create & Assign Course</h2>
+            <form asp-controller="Course" asp-action="CreateCourse" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label>1. Select Department (Filter)</label>
+                    <select id="filter_department" required>
+                        <option value="" disabled selected>-- Select a Department --</option>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>2. Course Name</label>
+                    <input type="text" name="CourseName" id="auto_course_name" placeholder="Automatic naming system" readonly style="background-color: #f1f3f5; color: #8d99ae; cursor: not-allowed;" />
+                </div>
+
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="SubjectId" id="select_subject" required disabled>
+                            <option value="" disabled selected>-- Select Subject --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Faculty</label>
+                        <select name="FacultyId" id="select_faculty" required disabled>
+                            <option value="" disabled selected>-- Select Faculty --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Enroll Class (Students)</label>
+                    <select name="ClassId" id="select_class" required disabled>
+                        <option value="" disabled selected>-- Select Class to auto-enroll --</option>
+                    </select>
+                    <small class="form-help-text">* All students in this class will be automatically enrolled.</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Create & Enroll</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- EDIT COURSE FORM -->
+    <div id="modal-edit-course" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn"><i class="fas fa-times"></i></span>
+            <h2>Edit Course</h2>
+            <form asp-controller="Course" asp-action="UpdateCourse" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CourseId" id="course_id" />
+
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" name="CourseName" id="course_name" required />
+                </div>
+                <div class="flex-row">
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="SubjectId" id="course_subjectid" required>
+                            @foreach (var sub in Model.Subjects)
+                            {
+                                <option value="@sub.SubjectId">@sub.SubjectCode - @sub.SubjectName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Faculty</label>
+                        <select name="FacultyId" id="course_facultyid" required>
+                            @foreach (var fac in Model.Faculties)
+                            {
+                                <option value="@fac.FacultyId">@fac.User?.FullName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-course-btn">
+                        <i class="fa-solid fa-trash-can"></i> Delete
+                    </button>
+                </div>
+            </form>
+
+            <form id="form-delete-course" asp-controller="Course" asp-action="DeleteCourse" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="delete_course_id" />
+            </form>
+        </div>
+    </div>
+
+
+    <script src="~/js/admin-dashboard.js"></script>
+    <script src="~/js/course.js"></script>
+    <script src="~/js/logout.js"></script>
+    <script src="/js/aside.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/notify.js"></script>
+    <script>
+            window.SystemAlerts = {
+                success: @Html.Raw(Json.Serialize(TempData["SuccessMessage"]?.ToString())),
+                error: @Html.Raw(Json.Serialize(TempData["ErrorMessage"]?.ToString()))
+            };
+    </script>
+</body>
+</html>

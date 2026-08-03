@@ -1,0 +1,399 @@
+﻿@model SIMS.Models.ViewModels.ManageCourseViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Assignment - " + Model.Course.CourseCode;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="~/img/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+    <link rel="stylesheet" href="~/css/manage-assignment.css" />
+</head>
+<body>
+    <aside class="sidebar">
+        <a href="/Faculty/Dashboard" class="logo">
+            <img src="~/img/logo.png" alt="Logo">
+            <span>Evolyne</span>
+        </a>
+        <a href="/Faculty/Dashboard" class="nav-link">
+            <i class="fa-solid fa-house"></i> Home
+        </a>
+        <a href="/Faculty/Dashboard" class="nav-link">
+            <i class="fa-solid fa-user"></i> My Profile
+        </a>
+        <a href="/Faculty/Dashboard" class="nav-link active">
+            <i class="fa-solid fa-layer-group"></i> Teaching Courses
+        </a>
+        <div class="log-out">
+            <partial name="_LogoutFormPartial" />
+            <a href="/api/auth/logout" onclick="handleLogout(event)" class="nav-link">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="tab-header">
+            <div class="header-title-group">
+                <h1 style="margin-bottom: 5px; color: var(--text);">
+                    <i class="fa-solid fa-laptop text-primary" style="margin-right: 8px;"></i>
+                    @Model.Course.CourseName
+                </h1>
+                <div class="join-code-container">
+                    Join Code: <span class="join-code-badge">@Model.Course.CourseCode</span>
+                </div>
+            </div>
+
+            <a href="/Faculty/Dashboard" class="btn-back">
+                <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <div class="profile-grid">
+
+            <!-- Assignment List -->
+            <div class="profile-section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f3f5; padding-bottom: 15px;">
+                    <h3 class="profile-section-title" style="border: none; margin: 0; padding: 0;">
+                        <i class="fa-solid fa-file-signature"></i> Assignments
+                    </h3>
+                    <button class="btn-create" onclick="document.getElementById('modal-create-assignment').style.display='flex'">
+                        <i class="fa-solid fa-plus"></i> New Assignment
+                    </button>
+                </div>
+
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Assignment Name</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Submissions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Assignments.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="empty-row" style="text-align: center; padding: 25px; color: gray;">No assignments created yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var assign in Model.Assignments)
+                                {
+                                    var submissionCount = Model.Grades.Count(g => g.AssignmentId == assign.AssignmentId);
+
+                                    <tr class="clickable-row"
+                                        data-target="modal-edit-assignment"
+                                        data-id="@assign.AssignmentId"
+                                        data-name="@assign.AssignmentName"
+                                        data-description="@assign.Description"
+                                        data-start="@(assign.StartTime?.ToString("yyyy-MM-ddTHH:mm"))"
+                                        data-end="@(assign.EndTime?.ToString("yyyy-MM-ddTHH:mm"))">
+
+                                        <td><strong>@assign.AssignmentName</strong></td>
+                                        <td>@(assign.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>@(assign.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>
+                                            <span class="status-badge @(submissionCount > 0 ? "status-approved" : "status-pending")">
+                                                @submissionCount / @Model.Enrollments.Count()
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Student List -->
+            <div class="profile-section-card">
+                <h3 class="profile-section-title">
+                    <i class="fa-solid fa-users"></i> Enrolled Students (@Model.Enrollments.Count())
+                </h3>
+
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Join Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Enrollments.Any())
+                            {
+                                <tr>
+                                    <td colspan="4" class="empty-row">No students have joined this class yet.</td>
+                                </tr>
+                            }
+                            @foreach (var enroll in Model.Enrollments)
+                            {
+                                <tr>
+                                    <td><strong>@(enroll.Student?.StudentCode ?? "N/A")</strong></td>
+                                    <td>@(enroll.Student?.User?.FullName ?? "N/A")</td>
+                                    <td>@(enroll.Student?.User?.Email ?? "N/A")</td>
+                                    <td>@enroll.EnrollmentDate.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Grade and Feedback List -->
+            <div class="profile-section-card" style="margin-top: 30px;">
+                <h3 class="profile-section-title">
+                    <i class="fa-solid fa-clipboard-check"></i> Student Submissions Management
+                </h3>
+
+                <div class="filter-container" style="margin: 0;">
+                    <div class=" form-group">
+                        <label>Filter Assignment:</label>
+                        <select id="assignment-filter" class="form-group">
+                            <option value="all">-- All Assignments --</option>
+                            @foreach (var assign in Model.Assignments)
+                            {
+                                <option value="@assign.AssignmentId">@assign.AssignmentName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Code</th>
+                                <th>Full Name</th>
+                                <th>Assignment</th>
+                                <th>Submitted Date</th>
+                                <th>File</th>
+                                <th>Score</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <!-- Student Submissions Management -->
+                        <tbody>
+                            @if (!Model.Grades.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" class="empty-row" style="text-align: center; padding: 25px; color: gray;">No submissions from students yet.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var grade in Model.Grades)
+                                {
+                                    var assignment = Model.Assignments.FirstOrDefault(a => a.AssignmentId == grade.AssignmentId);
+                                    var studentEnroll = Model.Enrollments.FirstOrDefault(e => e.StudentId == grade.StudentId);
+
+                                    var decodedUrl = Uri.UnescapeDataString(grade.FileUrl ?? "");
+                                    var fileName = !string.IsNullOrEmpty(decodedUrl) ? decodedUrl.Substring(decodedUrl.LastIndexOf('/') + 1) : "File";
+
+                                    <tr class="submission-row" data-assignment-id="@grade.AssignmentId">
+                                        <td><strong>@(studentEnroll?.Student?.StudentCode ?? "N/A")</strong></td>
+                                        <td>@(studentEnroll?.Student?.User?.FullName ?? "N/A")</td>
+                                        <td>@(assignment?.AssignmentName ?? "N/A")</td>
+                                        <td>@(grade.SubmitDate?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(grade.FileUrl))
+                                            {
+                                                <a href="@grade.FileUrl" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+                                                    <i class="fa-solid fa-download"></i> View File
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span>No file</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (grade.Score != null)
+                                            {
+                                                <span class="status-badge status-approved" style="background: #d1e7dd; color: #0f5132; font-weight: bold;">
+                                                    @grade.Score / 10
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="status-badge status-pending" style="background: #fff8e6; color: #856404;">Not Graded</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn-create btn-open-grade-modal"
+                                                    style="padding: 5px 10px; font-size: 0.85rem; background-color: var(--primary); border: none; cursor: pointer; border-radius: 5px;"
+                                                    data-gradeid="@grade.GradeId"
+                                                    data-score="@grade.Score"
+                                                    data-feedback="@grade.Feedback"
+                                                    data-student="@(studentEnroll?.Student?.User?.FullName)"
+                                                    data-assignment="@(assignment?.AssignmentName)">
+                                                <i class="fa-solid fa-pen-nib"></i> Grade
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+
+    <!-- Grade Assingment-->
+    <div id="modal-grade" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <h2>Grade Submission</h2>
+
+            <form asp-controller="GradeAssignment" asp-action="GradeSubmission" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="gradeId" id="modal_grade_id" />
+                <input type="hidden" name="courseId" value="@Model.Course.CourseId" />
+
+                <div class="form-group">
+                    <label>Student / Assignment</label>
+                    <div id="modal_info_text" style="color: var(--text-light, #64748b); font-size: 0.95rem; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Score (Max 100)</label>
+                    <input type="number" step="0.1" min="0" max="100" name="score" id="modal_score" class="form-control" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Feedback Comments</label>
+                    <textarea name="feedback" id="modal_feedback" rows="4" class="form-control" placeholder="Write feedback for student..."></textarea>
+                </div>
+
+                <button type="submit" class="btn-save" style="margin-top: 10px;">
+                    Save Grade
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Assigment -->
+    <div id="modal-create-assignment" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <h2>Create Assignment</h2>
+
+            <form asp-controller="Assignment" asp-action="CreateAssignment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CourseId" value="@Model.Course.CourseId" />
+
+                <div class="form-group">
+                    <label>Assignment Name</label>
+                    <input type="text" name="AssignmentName" placeholder="e.g. Lab 1 - C# Basic" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="Description" rows="4" placeholder="Enter assignment instructions..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="datetime-local" name="StartTime" />
+                </div>
+
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="datetime-local" name="EndTime" />
+                </div>
+
+                <button class="btn-save" type="submit" style="margin-top: 10px;">
+                    Create Assignment
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Assignment-->
+    <div id="modal-edit-assignment" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+            <h2>Edit Assignment</h2>
+
+            <form asp-controller="Assignment" asp-action="UpdateAssignment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="AssignmentId" id="edit_assignment_id" />
+                <input type="hidden" name="CourseId" value="@Model.Course.CourseId" />
+
+                <div class="form-group">
+                    <label>Assignment Name</label>
+                    <input type="text" name="AssignmentName" id="edit_assignment_name" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="Description" id="edit_assignment_description" rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Time</label>
+                    <input type="datetime-local" name="StartTime" id="edit_assignment_start" />
+                </div>
+
+                <div class="form-group">
+                    <label>End Time</label>
+                    <input type="datetime-local" name="EndTime" id="edit_assignment_end" required />
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-save" type="submit">Save Changes</button>
+                    <button type="button" class="btn-delete" id="delete-assignment-btn">Delete Assignment</button>
+                </div>
+            </form>
+
+            <form id="form-delete-assignment" asp-controller="Assignment" asp-action="Delete" method="post" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="AssignmentId" id="delete_assignment_id" />
+                <input type="hidden" name="CourseId" value="@Model.Course.CourseId" />
+            </form>
+        </div>
+    </div>
+
+
+    <script src="~/js/logout.js"></script>
+    <script src="~/js/manage-assignment.js"></script>
+    <script src="~/js/grade-modal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/notify.js"></script>
+    <script>
+            window.SystemAlerts = {
+                success: @Html.Raw(Json.Serialize(TempData["Success"]?.ToString())),
+                error: @Html.Raw(Json.Serialize(TempData["Error"]?.ToString()))
+            };
+    </script>
+</body>
+</html>

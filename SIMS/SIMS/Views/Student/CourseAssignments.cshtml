@@ -1,0 +1,76 @@
+﻿@model IEnumerable<SIMS.Models.Entities.Assignment>
+@{
+    Layout = null;
+    var course = ViewBag.Course as SIMS.Models.Entities.Course;
+    var myGrades = ViewBag.MyGrades as List<SIMS.Models.Entities.Grade> ?? new List<SIMS.Models.Entities.Grade>();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assignments</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/dashboard.css" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+</head>
+<body>
+    <main class="main" style="padding: 40px; max-width: 1000px; margin: 0 auto;">
+        <div class="tab-header" style="justify-content: flex-start; gap: 20px;">
+            <a href="/Student/Dashboard" class="btn-back" style="text-decoration: none;">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+            <h1 style="color: var(--text);">@course?.CourseName - Assignments</h1>
+        </div>
+
+        <div class="data-table-container profile-section-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Assignment Name</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th>Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="empty-row" style="text-align: center; padding: 30px;">No assignments posted for this course yet.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var assign in Model)
+                        {
+                            var submission = myGrades.FirstOrDefault(g => g.AssignmentId == assign.AssignmentId);
+                            <tr>
+                                <td><strong>@assign.AssignmentName</strong></td>
+                                <td>@(assign.EndTime?.ToString("dd/MM/yyyy HH:mm") ?? "No deadline")</td>
+                                <td>
+                                    @if (submission != null)
+                                    {
+                                        <span class="status-badge status-approved" style="background: #e7fbf3; color: #0f5132;">Submitted</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-pending" style="background: #fff8e6; color: #856404;">Pending</span>
+                                    }
+                                </td>
+                                <td>@(submission?.Score != null ? submission.Score + " / 10" : "Not graded")</td>
+                                <td>
+                                    <a href="/Student/Assignment/Detail/@assign.AssignmentId" style="text-decoration: none;">
+                                        <i class="fa-solid fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

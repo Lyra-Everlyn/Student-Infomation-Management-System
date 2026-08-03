@@ -1,0 +1,106 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolyn Login SIMS</title>
+    <link rel="icon" type="image/x-icon" href="~/img/logo.png">
+    <link rel="stylesheet" href="~/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <div class="background-container">
+        <img src="~/img/login-background.png" alt="Background">
+    </div>
+
+    <div class="container">
+        <div class="auth-box">
+            <div class="form-side">
+                <section id="login-form" class="auth-section active">
+                    <div class="header">
+                        <div class="brand-wrapper">
+                            <img src="~/img/logo.png" alt="Logo" class="brand-img">
+                            <h1>SIMS Login</h1>
+                        </div>
+                        <p>Login to Evolyne SIMS</p>
+                    </div>
+
+                    <form method="post" asp-controller="Auth" asp-action="Login" id="loginForm">
+                        
+                        @Html.AntiForgeryToken()
+                        <a href="/Auth/LoginGoogle" class="btn-google">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/960px-Google_Favicon_2025.svg.png" alt="Google Logo">
+                            Login with Google
+                        </a>
+
+                        <div class="divider">OR WITH LOCAL ACCOUNT</div>
+
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" id="email-login" placeholder="Email" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" id="pass-login" placeholder="Password" required>
+                            <i class="far fa-eye toggle-password" onclick="togglePass('pass-login', this)"></i>
+                        </div>
+
+                        <button type="submit" class="btn-main">Login</button>
+                    </form>
+
+
+                    <p class="footer-text">
+                        New student?
+                        <a href="/SendAdmission/Register">Submit Admission Application</a>
+                    </p>
+                </section>
+            </div>
+
+            <div class="image-side">
+                <img src="~/img/side-login.png" id="side-image" class="side-img-decor">
+            </div>
+        </div>
+    </div>
+
+    @{
+        var errorMessage = "";
+        // Get Exception or Validation error from Controller
+        if (!ViewData.ModelState.IsValid)
+        {
+            errorMessage = ViewData.ModelState.Values
+                            .SelectMany(v => v.Errors)
+                            .Select(e => e.ErrorMessage)
+                            .FirstOrDefault();
+        }
+        // Get error from Google
+        else if (TempData["ErrorMessage"] != null)
+        {
+            errorMessage = TempData["ErrorMessage"]?.ToString();
+        }
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const serverError = '@Html.Raw(errorMessage.Replace("'", "\\'"))';
+                    const passElement = document.getElementById('pass-login');
+                    const emailElement = document.getElementById('email-login');
+
+                    if (serverError.toLowerCase().includes('account') || serverError.toLowerCase().includes('email')) {
+                        showError(emailElement, serverError);
+                    } else {
+                        showError(passElement, serverError);
+                    }
+                });
+        </script>
+    }
+
+    <script src="~/js/handle-input-error.js"></script>
+</body>
+</html>
