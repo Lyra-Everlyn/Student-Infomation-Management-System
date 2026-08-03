@@ -1,0 +1,118 @@
+﻿@model SIMS.Models.Entities.User
+@{
+    Layout = null;
+    var departments = ViewBag.Departments as IEnumerable<SIMS.Models.Entities.Department>;
+    var status = ViewBag.ApplicationStatus as string;
+    var selectedDeptId = ViewBag.SelectedDepartmentId as int?;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applicant Profile - SIMS</title>
+    <link rel="icon" type="image/x-icon" href="~/img/logo.png">
+    <link rel="stylesheet" href="~/css/auth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="background-container">
+        <img src="~/img/login-background.png" alt="Background">
+    </div>
+
+    <div class="container">
+        <div class="auth-box">
+            <div class="form-side">
+                <section class="auth-section active">
+                    <div class="header">
+                        <div class="brand-wrapper">
+                            <img src="~/img/logo.png" class="brand-img" alt="Logo">
+                            <h1>Applicant Profile</h1>
+                        </div>
+
+                    </div>
+
+                    <form method="post" asp-controller="Applicant" asp-action="SubmitProfile">
+                        @Html.AntiForgeryToken()
+
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="FullName" placeholder="Full Name" value="@Model.FullName" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" value="@Model.Email" disabled>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" name="PhoneNumber" placeholder="Phone Number" value="@Model.PhoneNumber" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-calendar"></i>
+                            <input type="date" name="DateOfBirth" value="@Model.DateOfBirth?.ToString("yyyy-MM-dd")" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-location-dot"></i>
+                            <input type="text" name="Address" placeholder="Address" value="@Model.Address" required>
+                        </div>
+
+                        <div class="input-group">
+                            <i class="fas fa-building"></i>
+                            <select name="DepartmentId" required>
+                                <option value="">Select Department</option>
+
+                                @if (departments != null)
+                                {
+                                    foreach (var dept in departments)
+                                    {
+                                        // So sánh với selectedDeptId thay vì Model.DepartmentId
+                                        if (selectedDeptId == dept.DepartmentId)
+                                        {
+                                            <option value="@dept.DepartmentId" selected>@dept.DepartmentName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@dept.DepartmentId">@dept.DepartmentName</option>
+                                        }
+                                    }
+                                }
+
+                            </select>
+                        </div>
+                        <div class="note-text">
+                            * Please ensure all information is accurate before submitting.
+                        </div>
+                        @* @if (status != "Pending") {
+                        <button class="btn-main" type="submit">Submit Application</button>
+                    } *@
+                        <button class="btn-main" type="submit">Submit Application</button>
+                    </form>
+
+                    <div class="footer-text" style="margin-top: 15px;">
+                        <partial name="_LogoutFormPartial" />
+                        <a href="#" onclick="handleLogout(event)">Sign Out</a>
+                    </div>
+                </section>
+            </div>
+
+            <div class="image-side">
+                <img src="~/img/side-admission-application.png" alt="Admission Decoration" class="side-img-decor">
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/logout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/notify.js"></script>
+    <script>
+            window.SystemAlerts = {
+                success: @Html.Raw(Json.Serialize(TempData["SuccessMessage"]?.ToString())),
+                error: @Html.Raw(Json.Serialize(TempData["ErrorMessage"]?.ToString()))
+            };
+    </script>
+</body>
+</html>

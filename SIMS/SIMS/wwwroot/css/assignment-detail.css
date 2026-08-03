@@ -1,0 +1,202 @@
+﻿/* wwwroot/css/assignment-detail.css */
+.moodle-main-container {
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    min-height: 100vh;
+}
+
+.moodle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f1f3f5;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+    .moodle-header h1 {
+        font-size: 1.8rem;
+        color: #2b2d42;
+        margin: 0;
+    }
+
+.btn-moodle-back {
+    background: #e9ecef;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: #495057;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+    .btn-moodle-back:hover {
+        background: #dee2e6;
+        color: #2b2d42;
+    }
+
+.moodle-section-title {
+    font-size: 1.2rem;
+    color: #2b2d42;
+    margin-bottom: 15px;
+    margin-top: 30px;
+    font-weight: 600;
+}
+
+.moodle-instructions {
+    white-space: pre-line;
+    line-height: 1.6;
+    color: #495057;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary, #4361ee);
+    margin-bottom: 30px;
+}
+
+/* Bảng thống kê Moodle */
+.moodle-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #dee2e6;
+    margin-bottom: 30px;
+    font-size: 0.95rem;
+}
+
+    .moodle-table td {
+        padding: 12px 20px;
+        border: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
+
+    .moodle-table .col-label {
+        width: 30%;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+
+    .moodle-table .col-value {
+        width: 70%;
+        color: #212529;
+    }
+
+.bg-submitted {
+    background-color: #d1e7dd !important;
+    color: #0f5132;
+    font-weight: 600;
+}
+
+.bg-graded {
+    background-color: #d1e7dd !important;
+    color: #0f5132;
+}
+
+.bg-pending {
+    background-color: #e2e3e5 !important;
+    color: #41464c;
+}
+
+.text-danger-custom {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.file-link {
+    color: #0d6efd;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .file-link:hover {
+        text-decoration: underline;
+    }
+
+
+.submission-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-moodle-action {
+    background: var(--primary, #4361ee);
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-block;
+    width: auto;
+    transition: background 0.3s ease;
+}
+
+    .btn-moodle-action:hover {
+        background: #3a56d4;
+    }
+
+.btn-moodle-cancel {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-block;
+    width: auto;
+    margin-left: 10px;
+    transition: background 0.3s ease;
+}
+
+    .btn-moodle-cancel:hover {
+        background: #c82333;
+    }
+
+.upload-section {
+    display: none;
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.upload-group label {
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: block;
+    color: #2b2d42;
+}
+
+.upload-input {
+    padding: 15px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    width: 100%;
+    background: white;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.upload-help {
+    color: #6c757d;
+    margin-top: 8px;
+    display: block;
+    font-size: 0.85rem;
+}
+
+.upload-actions {
+    text-align: center;
+    margin-top: 20px;
+}
